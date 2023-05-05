@@ -1,0 +1,536 @@
+// import React, { useState, useEffect } from "react";
+// import Box from "./components/Box/Box";
+// import ControlPanel from "./components/ControlPanel/ControlPanel";
+// import useGenerateBoxes from "./hooks/useGenerateBoxes";
+
+// export const DualNBack = () => {
+//   // const [boxes, setBoxes] = useState([]);
+//   const [currentBox, setCurrentBox] = useState(null);
+//   const [currentLetter, setCurrentLetter] = useState(null);
+//   const [intervalId, setIntervalId] = useState(null);
+//   const [score, setScore] = useState(0);
+//   const [total, setTotal] = useState(0);
+//   const [level, setLevel] = useState(1);
+//   const [nBack, setNBack] = useState(2); // default 2-back
+//   const letters = ["c", "g", "h", "k", "p", "q", "t", "w"];
+//   const [color,setColor] = useState('blue')
+//   const [gameOver, setGameOver] = useState(false);
+//   const [gameOverColor, setGameOverColor] = useState("#000000");
+//   const [boxHistory, setBoxHistory] = useState([])
+//   const [indexes, setIndexes] = useState([])
+//   const [correct,setCorrect] = useState(0)
+//   const [inCorrect,setInCorrect] = useState(0)
+//   const [speedBetweenFlashes,setSpeedBetweenFlashes] = useState(1500)
+  
+
+//   // Generate an array of boxes
+//   // function generateBoxes() {
+//   //   const boxesArray = [];
+//   //   // Generate 3 rows and 3 columns of boxes
+//   //   for (let i = 0; i < 3; i++) {
+//   //     for (let j = 0; j < 3; j++) {
+//   //       const box = {
+//   //         id: `${i}-${j}`,
+//   //         x: 0,
+//   //         y: 0,
+//   //         size: 100,
+//   //         color: currentBox === i * 3 + j ? color : gameOver ? gameOverColor : "#000000",
+//   //         clicked: false,
+//   //       };
+//   //       boxesArray.push(box);
+//   //     }
+//   //   }
+//   //   return boxesArray;
+//   // }
+  
+//   // useEffect(() => {
+//   //   const boxesArray = generateBoxes();
+//   //   setBoxes(boxesArray);
+  
+//   //   if (currentBox !== null) {
+//   //     setTimeout(() => {
+//   //       const copy = [...boxes];
+//   //       copy[currentBox].color = "#000000";
+//   //       setBoxes(copy);
+//   //       setCurrentBox(null);
+//   //     }, 1000);
+//   //   }
+//   // }, [currentBox, gameOver, color]);
+
+//   const boxes = useGenerateBoxes(currentBox, gameOver, color, '#000000', setBoxes);
+
+//   useEffect(() => {
+//     if (currentBox !== null) {
+//       setTimeout(() => {
+//         const copy = [...boxes];
+//         copy[currentBox].color = '#000000';
+//         setBoxes(copy);
+//         setCurrentBox(null);
+//       }, 1000);
+//     }
+//   }, [currentBox, boxes]);
+
+//   useEffect(() => {
+//     if (total === 9) {
+//       setColor('"#000000"')
+//       setGameOver(true);
+//       stopGame();
+//     }
+//   }, [total]);
+
+//   useEffect(() => {
+//     window.addEventListener('keypress', handleKeyPress);
+//     return () => {
+//       window.removeEventListener('keypress', handleKeyPress);
+//     };
+//   }, [total, nBack, boxHistory]);
+
+//   useEffect(() => {
+//     if (currentBox !== null) {
+//       const newColors = [...boxColors];
+//       newColors[currentBox] = color;
+//       setBoxColors(newColors);
+  
+//       setTimeout(() => {
+//         newColors[currentBox] = ""#000000"";
+//         setBoxColors(newColors);
+//         setCurrentBox(null);
+//       }, 1000);
+//     }
+//   }, [currentBox, color]);
+  
+
+
+
+//   // Generate a random letter
+//   function generateLetter() {
+//     const randomIndex = Math.floor(Math.random() * letters.length);
+//     setCurrentLetter(letters[randomIndex]);
+//   }
+
+//   function generateRandomIndex() {
+//     let index = Math.floor(Math.random() * 9)
+//     if(index === 4) {
+//       index = Math.floor(Math.random() * 9)
+//     }
+//     return index
+//   }
+
+  
+//   console.log({indexes})
+//   // Start the game
+//   function startGame() {
+//     // Reset the score and total
+//     setScore(0);
+//     setTotal(0);
+    
+//     // Clear the interval if it's already running
+//     if (intervalId) {
+//       clearInterval(intervalId);
+//     }
+  
+//     // Start the game loop
+//     const id = setInterval(() => {
+//       // Generate a new box
+//       let newBox;
+//       do {
+//         newBox = generateRandomIndex();
+//       } while (newBox === 4 || (total >= nBack && newBox === currentBox));
+//       setCurrentBox(newBox);
+      
+//       // Add the new index to the array
+//       setIndexes(prevIndexes => {
+//         const newIndexes = [...prevIndexes, newBox];
+//         return newIndexes
+//       });
+//       generateLetter();
+//       // Increment the total count
+//       setTotal(total => total + 1);
+//     }, speedBetweenFlashes); // Change this value to adjust the interval between flashes
+//     setIntervalId(id);
+  
+//     // Stop the game after 60 seconds
+//     setTimeout(() => {
+//       clearInterval(id);
+//       setIntervalId(null);
+//       setGameOver(true)
+//     }, 60000);
+//     setGameOver(false);
+//   }
+
+//   // Handle box click
+//   function handleBoxClick(index) {
+//     if (index === currentBox) {
+//       const newColor = getRandomColor();
+//       setColor(newColor);
+//       setCurrentBox(Math.floor(Math.random() * 9));
+  
+//       setBoxColors((prevColors) => {
+//         const newColors = [...prevColors];
+//         newColors[currentBox] = newColor;
+//         return newColors;
+//       });
+  
+//       const newBoxHistory = [...boxHistory, currentBox];
+//       setBoxHistory(newBoxHistory);
+//       console.log("Box history:", newBoxHistory);
+  
+//       setTotal((total) => total + 1);
+//     }
+//   }
+  
+  
+//   // Handle level change
+//   function handleLevelChange(event) {
+//     setLevel(parseInt(event.target.value));
+//   }
+
+//   function handleSpeedChange(event){
+//     setSpeedBetweenFlashes(parseInt(event.target.value));
+//   }
+
+//   // Handle n-back change
+//   function handleNBackChange(event) {
+//     setNBack(parseInt(event.target.value));
+//   }
+
+//   // Stop the game and clear the interval
+//   function stopGame() {
+//     clearInterval(intervalId);
+//     setIntervalId(null);
+//     setGameOverColor(""#000000"");
+//     setColor('"#000000"')
+//     setGameOver(false)
+//   }
+
+
+// function handleKeyPress(event) {
+//   const LOCATION = 108;
+//   // Only handle keypress events if enough rounds have passed
+//   if (total > nBack) {
+//     const prevIndex = (total - nBack - 1 + indexes.length) % indexes.length;
+//     if (event.keyCode === LOCATION && indexes[prevIndex] === indexes[indexes.length - 1]) {
+//       console.log('hit');
+//       setScore(score => score + 1);
+//       setCorrect(correct => correct + 1)
+//     } else {
+//       console.log('miss');
+//       setScore(score => score - 1);
+//       setInCorrect(inCorrect => inCorrect + 1)
+
+//     }
+//   }
+//   console.log({ score });
+// }
+//   return (
+//     <div>
+//      <div style={{ display: "flex", flexWrap: "wrap", width: "300px" }}>
+//       {boxes.map(box => (
+//         <Box
+//           key={box.id}
+//           id={box.id}
+//           x={box.x}
+//           y={box.y}
+//           size={box.size}
+//           color={box.color}
+//           clicked={box.clicked}
+//           handleClick={handleBoxClick}
+//         />
+//       ))}
+//     </div>
+//     <ControlPanel 
+//       startGame={startGame} 
+//       stopGame={stopGame} 
+//       level={level} 
+//       handleLevelChange={handleLevelChange} 
+//       speedBetweenFlashes={speedBetweenFlashes} 
+//       handleSpeedChange={handleSpeedChange} 
+//       nBack={nBack} 
+//       handleNBackChange={handleNBackChange} 
+//       correct={correct} 
+//       inCorrect={inCorrect} 
+//       />
+
+//     </div>
+//   );
+
+
+// }
+
+
+
+
+
+
+
+
+
+
+import React, { useState, useEffect } from "react";
+import Box from "./components/Box/Box";
+import ControlPanel from "./components/ControlPanel/ControlPanel";
+
+export const DualNBack = () => {
+  const [boxes, setBoxes] = useState([]);
+  const [currentBox, setCurrentBox] = useState(null);
+  const [currentLetter, setCurrentLetter] = useState(null);
+  const [intervalId, setIntervalId] = useState(null);
+  const [score, setScore] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [nBack, setNBack] = useState(2); // default 2-back
+  const letters = ["c", "g", "h", "k", "p", "q", "t", "w"];
+  const [color,setColor] = useState('blue')
+  const [gameOver, setGameOver] = useState(false);
+  const [gameOverColor, setGameOverColor] = useState("#000000");
+  const [boxHistory, setBoxHistory] = useState([])
+  const [indexes, setIndexes] = useState([])
+  const [correct,setCorrect] = useState(0)
+  const [inCorrect,setInCorrect] = useState(0)
+  const [speedBetweenFlashes,setSpeedBetweenFlashes] = useState(1500)
+  const [flag,setFlag] = useState(false)
+
+  // Generate an array of boxes
+  function generateBoxes() {
+    const boxesArray = [];
+    // Generate 3 rows and 3 columns of boxes
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        const box = {
+          id: `${i}-${j}`,
+          x: 0,
+          y: 0,
+          size: 100,
+          color: currentBox === i * 3 + j ? color : gameOver ? gameOverColor : "#000000",
+          clicked: false,
+        };
+        boxesArray.push(box);
+      }
+    }
+    return boxesArray;
+  }
+  
+  useEffect(() => {
+    const boxesArray = generateBoxes();
+    setBoxes(boxesArray);
+  
+    if (currentBox !== null) {
+      setTimeout(() => {
+        const copy = [...boxes];
+        copy[currentBox].color = "#000000";
+        setBoxes(copy);
+        setCurrentBox(null);
+      }, 1000);
+    }
+  }, [currentBox, gameOver, color]);
+
+  useEffect(() => {
+    if (total === 9) {
+      setColor('"#000000"')
+      setGameOver(true);
+      stopGame();
+    }
+  }, [total]);
+
+  useEffect(() => {
+    generateBoxes();
+  }, [currentBox]);
+
+  useEffect(() => {
+    window.addEventListener('keypress', handleKeyPress);
+    return () => {
+      window.removeEventListener('keypress', handleKeyPress);
+    };
+  }, [total, nBack, boxHistory]);
+
+
+
+  // Generate a random letter
+  function generateLetter() {
+    const randomIndex = Math.floor(Math.random() * letters.length);
+    setCurrentLetter(letters[randomIndex]);
+  }
+
+  function generateRandomIndex() {
+    let index = Math.floor(Math.random() * 9)
+    if(index === 4) {
+      index = Math.floor(Math.random() * 9)
+    }
+    return index
+  }
+
+  
+  console.log({indexes})
+  // Start the game
+  function startGame() {
+    // Reset the score and total
+    setScore(0);
+    setTotal(0);
+    
+    // Clear the interval if it's already running
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
+  
+    // Start the game loop
+    const id = setInterval(() => {
+      // Generate a new box
+      let newBox;
+      do {
+        newBox = generateRandomIndex();
+      } while (newBox === 4 || (total >= nBack && newBox === currentBox));
+      setCurrentBox(newBox);
+      
+      // Add the new index to the array
+      setIndexes(prevIndexes => {
+        const newIndexes = [...prevIndexes, newBox];
+        return newIndexes
+      });
+      generateLetter();
+      // Increment the total count
+      setTotal(total => total + 1);
+    }, speedBetweenFlashes); // Change this value to adjust the interval between flashes
+    setIntervalId(id);
+  
+    // Stop the game after 60 seconds
+    setTimeout(() => {
+      clearInterval(id);
+      setIntervalId(null);
+      setGameOver(true)
+    }, 60000);
+    setGameOver(false);
+  }
+
+  // Handle box click
+  function handleBoxClick(index) {
+    if (index === currentBox) {
+      const newColor = getRandomColor();
+      setColor(newColor);
+      setCurrentBox(Math.floor(Math.random() * 9));
+  
+      const newBoxHistory = [...boxHistory, currentBox];
+      setBoxHistory(newBoxHistory);
+      console.log('Box history:', newBoxHistory);
+  
+      setTotal(total => total + 1);
+    }
+  }
+  
+  // Handle level change
+  function handleLevelChange(event) {
+    setLevel(parseInt(event.target.value));
+  }
+
+  function handleSpeedChange(event){
+    setSpeedBetweenFlashes(parseInt(event.target.value));
+  }
+
+  // Handle n-back change
+  function handleNBackChange(event) {
+    setNBack(parseInt(event.target.value));
+  }
+
+  // Stop the game and clear the interval
+  function stopGame() {
+    clearInterval(intervalId);
+    setIntervalId(null);
+    setGameOverColor("#000000");
+    setColor('"#000000"')
+    setGameOver(false)
+  }
+
+
+function handleKeyPress(event) {
+  const LOCATION = 108;
+  // Only handle keypress events if enough rounds have passed
+  if (total > nBack) {
+    const prevIndex = (total - nBack - 1 + indexes.length) % indexes.length;
+    if (event.keyCode === LOCATION && indexes[prevIndex] === indexes[indexes.length - 1]) {
+      console.log('hit');
+      setScore(score => score + 1);
+      setCorrect(correct => correct + 1)
+    } else {
+      console.log('miss');
+      setScore(score => score - 1);
+      setInCorrect(inCorrect => inCorrect + 1)
+
+    }
+  }
+  console.log({ score });
+}
+  return (
+    <div>
+     <div style={{ display: "flex", flexWrap: "wrap", width: "300px" }}>
+      {boxes.map(box => (
+        <Box
+          key={box.id}
+          id={box.id}
+          x={box.x}
+          y={box.y}
+          size={box.size}
+          color={box.color}
+          clicked={box.clicked}
+          handleClick={handleBoxClick}
+        />
+      ))}
+    </div>
+    <ControlPanel 
+      startGame={startGame} 
+      stopGame={stopGame} 
+      level={level} 
+      handleLevelChange={handleLevelChange} 
+      speedBetweenFlashes={speedBetweenFlashes} 
+      handleSpeedChange={handleSpeedChange} 
+      nBack={nBack} 
+      handleNBackChange={handleNBackChange} 
+      correct={correct} 
+      inCorrect={inCorrect} 
+      />
+
+    </div>
+  );
+
+
+}
+      // <div>
+      //   <button onClick={startGame}>Start</button>
+      //   <button onClick={stopGame}>Stop</button>
+      //   <div>
+      //     <label>Level:</label>
+      //     <select value={level} onChange={handleLevelChange}>
+      //       <option value={1}>1</option>
+      //       <option value={2}>2</option>
+      //       <option value={3}>3</option>
+      //       <option value={4}>4</option>
+      //       <option value={5}>5</option>
+      //     </select>
+      //   </div>
+      //   <div>
+      //     <label>Set Speed:</label>
+      //     <select value={speedBetweenFlashes} onChange={handleSpeedChange}>
+      //       <option value={1000}>Rapid</option>
+      //       <option value={1500}>Fast</option>
+      //       <option value={2000}>Quick</option>
+      //       <option value={2500}>Normal+</option>
+      //       <option value={3000}>Normal</option>
+      //     </select>
+      //   </div>
+      //   <div>
+      //     <label>N-Back:</label>
+      //     <select value={nBack} onChange={handleNBackChange}>
+      //       <option value={1}>1</option>
+      //       <option value={2}>2</option>
+      //       <option value={3}>3</option>
+      //       <option value={4}>4</option>
+      //       <option value={5}>5</option>
+      //       <option value={6}>6</option>
+      //       <option value={7}>7</option>
+      //       <option value={8}>8</option>
+      //     </select>
+      //   </div>
+      //   <div>
+      //     <p>Score: {correct} / {inCorrect}</p>
+      //     <p>Correct: {correct}</p> 
+      //     <p>InCorrect: {inCorrect}</p> 
+      //   </div>
+      // </div>
