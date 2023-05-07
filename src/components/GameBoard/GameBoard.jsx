@@ -15,6 +15,7 @@ import { StartStop } from "../StartStop/StartStop";
 import { GameNav } from "../GameNav/GameNav";
 import { Modal } from "../Modal/Modal";
 import { MobileButtons } from "../MobileButtons/MobileButtons";
+import { ScoreModal } from '../Modal/ScoreModal'
 
 
 export function StartButton({ startGame }) {
@@ -33,15 +34,13 @@ export function GameBoard() {
   const [randomColor, setRandomColor] = useState(false);
   const [randomShape, setRandomShape] = useState(false);
 
-
   const [soundIndexes,setSoundIndexes] = useState([])
   const [countDown, setCountdown] = useState(null);
   const [TT,setTT] = useState(false)
 
-
+  const [showScore, setShowScore] = useState(false);
   const [boxes, setBoxes] = useState(Array(9).fill({ bgColor: "white" }));
   const [indexes,setIndexes] = useState([]) 
-  // console.log(indexes)
   const [letterIndex,setLetterIndex] = useState([]) 
   const [letterIndexes,setLetterIndexes] = useState([]) 
   const [gameRunning, setGameRunning] = useState(false);
@@ -70,7 +69,7 @@ export function GameBoard() {
   const [nBack, setNBack] = useState(2);
   const timeoutIdRef = useRef(null);
   const intervalIdRef = useRef(null);
-  const [roundLength] = useState(12)
+  const [roundLength] = useState(4)
 
   const [currentLetter, setCurrentLetter] = useState(null);
   const letters = ['c', 'g', 'h', 'k', 'p', 'q', 't', 'w'];
@@ -92,10 +91,10 @@ export function GameBoard() {
  }
 
  const [colorIndexes,setColorIndexes] = useState([])
-
  const [lastIndexColored, setLastIndexColored] = useState(null);
 
  const colors = ['yellow', 'purple', 'blue', 'red', 'orange', 'green'];
+ 
  const generateRandomColor = useCallback(() => {
   const randomIndex = Math.floor(Math.random() * colors.length);
   const randomColor = colors[randomIndex];
@@ -193,26 +192,39 @@ const startGame = () => {
       }
     });
     setBoxes(updatedBoxes);
+
+    const handleGameOver = () => {
+      clearInterval(intervalIdRef.current);
+      clearTimeout(timeoutIdRef.current);
+      setCurrentIndex(null);
+      setGameRunning(false);
+      setGameOver(true);
+      setShowScore(false);
+      setTimeout(() => {
+        setShowScore(true);
+      }, 2000);
+    };
+    
+    
+    
+    
   
     const timeoutId = setTimeout(() => {
       const resetBoxes = [...boxes];
       resetBoxes[newIndex].bgColor = "white";
       setBoxes(resetBoxes);
-  
-      if (i >= roundLength - 1) {
-        clearInterval(intervalIdRef.current);
-        clearTimeout(timeoutIdRef.current);
-        setCurrentIndex(null);
-        setGameRunning(false);
-        setGameOver(true);
+    
+      if (i >= roundLength) {
+        handleGameOver();
       }
-  
+    
       i++;
-    }, runTime - 500);
+    }, runTime + 1000);
+    
   
     timeoutIdRef.current = timeoutId; // store timeout ID in ref
   
-    if (i >= roundLength - 1) {
+    if (i >= roundLength) {
       clearInterval(intervalId);
       clearTimeout(timeoutIdRef.current);
       setCurrentIndex(null);
@@ -278,6 +290,28 @@ const handleStopClick = () => {
     return resetBoxes;
   });
 };
+
+const handleNextRound = () => {
+  setCorrectBox(0);
+  setInCorrectBox(0);
+  setCorrectLetter(0);
+  setInCorrectLetter(0);
+  setCurrentIndex(null);
+  setShowScore(false);
+  startCountDown()
+  setCountDown(null)
+  startGame();
+};
+
+
+
+const handleCloseScoreModal = () => {
+  setShowScore(false);
+  setGameOver(false);
+};
+
+
+
 
 const handleNChange = (event) => {
   setNBack(parseInt(event.target.value));
@@ -384,22 +418,15 @@ function handleLocationButtonTouch() {
             </div>
           )}
         </div>
-  
-        {gameOver && (
-        <>
-          <p className="mb-2 text-lg font-bold">
-            Sound: {`${correctLetter} / ${correctLetter + inCorrectLetter}`}
-          </p>
-          <p className="mb-2 text-lg font-bold">
-          Location: {`${correctBox} / ${correctBox + inCorrectBox}`}
-          </p>
-          <p className="mb-2 text-lg font-bold">
-            {randomColor ? <>Color: {`${correctLetter} / ${correctLetter + inCorrectLetter}`} </>: null}
-          </p>
-        </>
-      )}
 
-  
+        {/* Display game information */}
+        <div className="mb-4 text-lg font-bold">
+          Current n-Back: {nBack}
+        </div>
+        <div className="mb-4 text-lg font-bold">
+          Color mode: {randomColor ? "Enabled" : "Disabled"}
+        </div>
+        {/* Display game board */}
         <BoxRow
           boxes={boxes}
           start={0}
@@ -444,13 +471,29 @@ function handleLocationButtonTouch() {
             handleIncorrectSoundChange={handleIncorrectSoundChange}
           />
         </Modal>
+  
+        {/* Render the ScoreModal overlay when the game is over and the showScore state is true */}
+        {gameOver && showScore && (
+          <Modal isOpen={true} closeModal={() => setShowScore(false)}>
+          <ScoreModal
+            correctLetter={correctLetter}
+            inCorrectLetter={inCorrectLetter}
+            correctBox={correctBox}
+            inCorrectBox={inCorrectBox}
+            randomColor={randomColor}
+            onClose={handleCloseScoreModal}
+            onNextRound={handleNextRound}
+          />
+        </Modal>
+        )}
       </div>
     </>
   );
+
+  
+  
+  
+  
   
 
 }
-
-  
-  
-  

@@ -1,4 +1,4 @@
-export const GameNav = ({ toggleOptionsModal, onSoundButtonTouch, onLocationButtonTouch }) => {
+export const GameNav = ({ toggleOptionsModal, togglePlayModal, onSoundButtonTouch, onLocationButtonTouch }) => {
   return (
     <div className="game-nav">
       <nav>
@@ -10,23 +10,15 @@ export const GameNav = ({ toggleOptionsModal, onSoundButtonTouch, onLocationButt
           >
             options
           </li>
-          <li className="text-black p-2 rounded cursor-pointer hover:bg-blue-700 color-white transition-colors duration-300">placeholder</li>
+          <li
+            className="text-black p-2 rounded cursor-pointer hover:bg-blue-700 transition-colors duration-300"
+            onClick={togglePlayModal}
+          >
+            How To Play
+          </li>
         </ul>
         <div className="mt-4 flex justify-around">
-          {/* <button
-            className="button w-40 h-40 bg-green-500 location-button"
-            onClick={onSoundButtonTouch}
-            onTouchStart={onSoundButtonTouch}
-          >
-            Sound (S)
-          </button>
-          <button
-            className="button w-40 h-40 bg-green-500 location-button"
-            onClick={onLocationButtonTouch}
-            onTouchStart={onLocationButtonTouch}
-          >
-            Location (L)
-          </button> */}
+
         </div>
       </nav>
 
