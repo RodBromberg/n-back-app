@@ -16,6 +16,7 @@ import { GameNav } from "../GameNav/GameNav";
 import { Modal } from "../Modal/Modal";
 import { MobileButtons } from "../MobileButtons/MobileButtons";
 import { ScoreModal } from '../Modal/ScoreModal'
+import { HowToPlay } from "../HowToPlay/HowToPlay";
 
 
 export function StartButton({ startGame }) {
@@ -29,6 +30,7 @@ export function GameBoard() {
     setOptionsModalOpen(!optionsModalOpen);
   };
   
+  const [togglePlayModal, setTogglePlayModal] = useState(false)
 
   const [playIncorrectSound, setPlayIncorrectSound] = useState(false);
   const [randomColor, setRandomColor] = useState(false);
@@ -291,6 +293,11 @@ const handleStopClick = () => {
   });
 };
 
+const [completedRounds, setCompletedRounds] = useState(
+  localStorage.getItem("completedRounds") || 0
+);
+
+
 const handleNextRound = () => {
   setCorrectBox(0);
   setInCorrectBox(0);
@@ -298,9 +305,12 @@ const handleNextRound = () => {
   setInCorrectLetter(0);
   setCurrentIndex(null);
   setShowScore(false);
-  startCountDown()
-  setCountDown(null)
+  setCompletedRounds((prevCount) => prevCount + 1);
+  startCountDown();
   startGame();
+
+  setCompletedRounds((prevCompletedRounds) => prevCompletedRounds + 1);
+  localStorage.setItem("completedRounds", completedRounds + 1);
 };
 
 
@@ -401,6 +411,12 @@ function handleLocationButtonTouch() {
   const locationPercentage = calculatePercentage(correctBox, boxes.length);
   const colorPercentage = calculatePercentage(correctColor, colorIndexes.length);
   
+const [instructionsModalOpen, setInstructionsModalOpen] = useState(false);
+
+const toggleInstructionsModal = () => {
+  setInstructionsModalOpen(!instructionsModalOpen);
+};
+
   
   return (
     <>
@@ -408,6 +424,8 @@ function handleLocationButtonTouch() {
         onSoundButtonTouch={handleSoundButtonTouch}
         onLocationButtonTouch={handleLocationButtonTouch}
         toggleOptionsModal={toggleOptionsModal}
+        togglePlayModal={togglePlayModal}
+        toggleInstructionsModal={toggleInstructionsModal}
       />
   
       <div className="flex flex-col items-center justify-center w-full h-screen">
@@ -459,6 +477,9 @@ function handleLocationButtonTouch() {
           handleLocationButtonTouch={handleLocationButtonTouch}
           handleSoundButtonTouch={handleSoundButtonTouch}
         />
+
+          
+
         <Modal isOpen={optionsModalOpen} closeModal={toggleOptionsModal}>
           <OptionsPanel
             nBack={nBack}
@@ -471,19 +492,26 @@ function handleLocationButtonTouch() {
             handleIncorrectSoundChange={handleIncorrectSoundChange}
           />
         </Modal>
+        <Modal isOpen={instructionsModalOpen} closeModal={toggleInstructionsModal}>
+          <HowToPlay />
+        </Modal>
+
+
   
         {/* Render the ScoreModal overlay when the game is over and the showScore state is true */}
         {gameOver && showScore && (
           <Modal isOpen={true} closeModal={() => setShowScore(false)}>
           <ScoreModal
-            correctLetter={correctLetter}
-            inCorrectLetter={inCorrectLetter}
-            correctBox={correctBox}
-            inCorrectBox={inCorrectBox}
-            randomColor={randomColor}
-            onClose={handleCloseScoreModal}
-            onNextRound={handleNextRound}
-          />
+          correctLetter={correctLetter}
+          inCorrectLetter={inCorrectLetter}
+          correctBox={correctBox}
+          inCorrectBox={inCorrectBox}
+          randomColor={randomColor}
+          onClose={handleCloseScoreModal}
+          onNextRound={handleNextRound}
+          completedRounds={completedRounds}
+        />
+
         </Modal>
         )}
       </div>
