@@ -5,7 +5,7 @@ export const Modal = ({ children, isOpen, closeModal }) => {
 
   return (
     <div className="fixed top-0 left-0 w-full h-screen flex items-center justify-center bg-black bg-opacity-50 z-10">
-      <div style={{ width: 600, height: 750}} className="bg-gray-200 p-8 rounded-lg w-120 relative h-screen">
+      <div style={{ width: 600 }} className="bg-gray-200 p-8 rounded-lg w-120 relative max-h-screen overflow-y-auto">
         <button onClick={closeModal} className="absolute top-2 left-2 text-gray-800">
           Close
         </button>
@@ -16,6 +16,7 @@ export const Modal = ({ children, isOpen, closeModal }) => {
     </div>
   );
 };
+
 
 // import React from 'react';
 

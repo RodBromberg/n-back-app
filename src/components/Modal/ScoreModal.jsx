@@ -1,13 +1,15 @@
 export const ScoreModal = ({
-    correctLetter,
-    inCorrectLetter,
-    correctBox,
-    inCorrectBox,
-    randomColor,
-    onClose,
-    onNextRound,
-  }) => {
-    return (
+  correctLetter,
+  inCorrectLetter,
+  correctBox,
+  inCorrectBox,
+  randomColor,
+  roundCount,
+  onClose,
+  onNextRound,
+}) => {
+  return (
+    <>
       <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-50">
         <div className="bg-white rounded-md p-8">
           <p className="mb-2 text-lg font-bold">
@@ -16,8 +18,13 @@ export const ScoreModal = ({
           <p className="mb-2 text-lg font-bold">
             Location: {`${correctBox} / ${correctBox + inCorrectBox}`}
           </p>
+          {randomColor && (
+            <p className="mb-2 text-lg font-bold">
+              Color: {`${correctLetter} / ${correctLetter + inCorrectLetter}`}
+            </p>
+          )}
           <p className="mb-2 text-lg font-bold">
-            {randomColor ? <>Color: {`${correctLetter} / ${correctLetter + inCorrectLetter}`} </>: null}
+            Rounds Completed: {roundCount}
           </p>
           <div className="flex justify-end mt-4">
             <button
@@ -27,12 +34,12 @@ export const ScoreModal = ({
               Next Round
             </button>
             <button className="btn" onClick={onClose}>
-          Close
-        </button>
-
+              Close
+            </button>
           </div>
         </div>
       </div>
-    );
-  };
-  
+      <div className="fixed top-0 left-0 w-full h-full bg-black opacity-50 z-40"></div>
+    </>
+  );
+};

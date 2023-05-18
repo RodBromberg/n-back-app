@@ -249,8 +249,10 @@ const startGame = () => {
   };
 
   const handleRandomColorChange = (event) => {
-    setRandomColor(event.target.value);
+    const newValue = event.target.value === "true"; // Convert the string to a boolean
+    setRandomColor(newValue);
   };
+  
 
   const handleRandomShapeChange = (event) => {
     setRandomShape(event.target.checked);
@@ -407,10 +409,6 @@ function handleLocationButtonTouch() {
     return total === 0 ? 0 : Math.round((numCorrect / total) * 100);
   }
   
-  const soundPercentage = calculatePercentage(keyPressCount, soundIndexes.length);
-  const locationPercentage = calculatePercentage(correctBox, boxes.length);
-  const colorPercentage = calculatePercentage(correctColor, colorIndexes.length);
-  
 const [instructionsModalOpen, setInstructionsModalOpen] = useState(false);
 
 const toggleInstructionsModal = () => {
@@ -427,6 +425,8 @@ const toggleInstructionsModal = () => {
         togglePlayModal={togglePlayModal}
         toggleInstructionsModal={toggleInstructionsModal}
       />
+
+      <h2 className='text-white'>{randomColor ? 'Tri-N-Back' : 'Dual-N-Back'}</h2>
   
       <div className="flex flex-col items-center justify-center w-full h-screen">
         <div className="mb-8">
@@ -437,7 +437,46 @@ const toggleInstructionsModal = () => {
           )}
         </div>
 
+        <div className="flex">
+  {/* Show instruction for audio match */}
+  <div className="flex items-center justify-center mb-4">
+    <div className="bg-gray-500 full p-4 m-2">
+      <div className="text-white text-center font-bold">
+        Click 'S' to Match Sound
+      </div>
+    </div>
+  </div>
+
+  {/* Show instruction for location match */}
+  <div className="flex items-center justify-center mb-4">
+    <div className="bg-gray-500 full p-4">
+      <div className="text-white text-center font-bold">
+        Click 'L' to Match Location
+      </div>
+    </div>
+  </div>
+
+  {/* Show instruction for color match if color is enabled */}
+  {randomColor && (
+    <div className="flex items-center justify-center mb-4">
+      <div className="bg-gray-500 full m-2 p-4">
+        <div className="text-white text-center font-bold">
+          Click 'C' to Match Color
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
+
+
+            
         {/* Display game information */}
+        <h2 className="text-white">
+          {randomColor ? "Tri-N-Back" : "Dual-N-Back"}
+        </h2>
+
+
         <div className="mb-4 text-lg font-bold">
           Current n-Back: {nBack}
         </div>
@@ -495,12 +534,8 @@ const toggleInstructionsModal = () => {
         <Modal isOpen={instructionsModalOpen} closeModal={toggleInstructionsModal}>
           <HowToPlay />
         </Modal>
-
-
-  
         {/* Render the ScoreModal overlay when the game is over and the showScore state is true */}
         {gameOver && showScore && (
-          <Modal isOpen={true} closeModal={() => setShowScore(false)}>
           <ScoreModal
           correctLetter={correctLetter}
           inCorrectLetter={inCorrectLetter}
@@ -511,17 +546,8 @@ const toggleInstructionsModal = () => {
           onNextRound={handleNextRound}
           completedRounds={completedRounds}
         />
-
-        </Modal>
         )}
       </div>
     </>
   );
-
-  
-  
-  
-  
-  
-
 }
