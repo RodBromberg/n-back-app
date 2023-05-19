@@ -7,7 +7,7 @@ export default function Box({ index, bgColor, currentIndex, gameRunning, stopGam
     backgroundColor: bgColor,
     border: '1px solid black',
   };
-
+// test
   return (
     <div className="p-2">
       <div style={boxStyle}></div>
