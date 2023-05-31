@@ -8,19 +8,22 @@ export const ScoreModal = ({
   onClose,
   onNextRound,
 }) => {
+  const totalLetter = correctLetter + inCorrectLetter;
+  const totalBox = correctBox + inCorrectBox;
+
   return (
     <>
       <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-50">
         <div className="bg-white rounded-md p-8">
           <p className="mb-2 text-lg font-bold">
-            Sound: {`${correctLetter} / ${correctLetter + inCorrectLetter}`}
+            Sound: Correct = {correctLetter}, InCorrect = {inCorrectLetter}
           </p>
           <p className="mb-2 text-lg font-bold">
-            Location: {`${correctBox} / ${correctBox + inCorrectBox}`}
+            Location: Correct = {correctBox}, InCorrect = {inCorrectBox}
           </p>
           {randomColor && (
             <p className="mb-2 text-lg font-bold">
-              Color: {`${correctLetter} / ${correctLetter + inCorrectLetter}`}
+              Color: Correct = {correctLetter}, InCorrect = {inCorrectLetter}
             </p>
           )}
           <p className="mb-2 text-lg font-bold">

@@ -18,6 +18,13 @@ import { MobileButtons } from "../MobileButtons/MobileButtons";
 import { ScoreModal } from '../Modal/ScoreModal'
 import { HowToPlay } from "../HowToPlay/HowToPlay";
 
+import { useGameControls } from '../../hooks/useGameControls'
+import { useGetTally } from "../../hooks/useGetTally";
+import { useKeyPress } from "../../hooks/useKeyPressHandler";
+import { useChangeBoxColor } from "../../hooks/useChangeBox";
+import { ButtonInstructions } from "../ButtonInstructions/ButtonInstructions";
+
+
 
 export function StartButton({ startGame }) {
   return <button onClick={startGame}>Start</button>;
@@ -31,25 +38,23 @@ export function GameBoard() {
   };
   
   const [togglePlayModal, setTogglePlayModal] = useState(false)
-
   const [playIncorrectSound, setPlayIncorrectSound] = useState(false);
   const [randomColor, setRandomColor] = useState(false);
   const [randomShape, setRandomShape] = useState(false);
-
-  const [soundIndexes,setSoundIndexes] = useState([])
   const [countDown, setCountdown] = useState(null);
   const [TT,setTT] = useState(false)
-
   const [showScore, setShowScore] = useState(false);
   const [boxes, setBoxes] = useState(Array(9).fill({ bgColor: "white" }));
-  const [indexes,setIndexes] = useState([]) 
   const [letterIndex,setLetterIndex] = useState([]) 
-  const [letterIndexes,setLetterIndexes] = useState([]) 
   const [gameRunning, setGameRunning] = useState(false);
   const [runTime, setRunTime] = useState(2000);
   const [currentIndex, setCurrentIndex] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
+  
+  const [letterIndexes,setLetterIndexes] = useState([]) 
+  const [indexes,setIndexes] = useState([]) 
+  const [soundIndexes,setSoundIndexes] = useState([])
 
   const [correctBox, setCorrectBox] = useState(0);
   const [inCorrectBox, setInCorrectBox] = useState(0);
@@ -61,8 +66,10 @@ export function GameBoard() {
   const [correctColor, setCorrectColor] = useState(0);
   const [incorrectColor, setIncorrectColor] = useState(0);
 
-
-  
+  // round tally
+  const [completedRounds, setCompletedRounds] = useState(
+    parseInt(localStorage.getItem("completedRounds")) || 0
+  );
 
 
   const [internalCount,setInternalCount] = useState(0)
@@ -71,6 +78,7 @@ export function GameBoard() {
   const [nBack, setNBack] = useState(2);
   const timeoutIdRef = useRef(null);
   const intervalIdRef = useRef(null);
+  const countdownRef = useRef(null);
   const [roundLength] = useState(4)
 
   const [currentLetter, setCurrentLetter] = useState(null);
@@ -96,7 +104,7 @@ export function GameBoard() {
  const [lastIndexColored, setLastIndexColored] = useState(null);
 
  const colors = ['yellow', 'purple', 'blue', 'red', 'orange', 'green'];
- 
+
  const generateRandomColor = useCallback(() => {
   const randomIndex = Math.floor(Math.random() * colors.length);
   const randomColor = colors[randomIndex];
@@ -114,15 +122,11 @@ const generateRandomIndex = useCallback((boxes) => {
 }, []);
 
 
-  // console.log(soundIndexes, 'HERE')
-
   const generateRandomLetter = () => {
       const randomIndex = Math.floor(Math.random() * 8);
-
-      setLetterIndexes([...letterIndexes, randomIndex]);
-
+      setLetterIndexes([...letterIndexes, 0]);
       setSoundIndexes((prevSoundIndexes) => {
-        const newSoundIndexes = [...prevSoundIndexes, letters[randomIndex]];
+        const newSoundIndexes = [...prevSoundIndexes, letters[0]];
         return newSoundIndexes;
       });
       if (total > nBack+1) {
@@ -130,115 +134,86 @@ const generateRandomIndex = useCallback((boxes) => {
         setFast(fast => fast + 1);
       }
       
-      return randomIndex;
-    };
-
-  const startCountDown = () => {
-    setCountdown(3)
-    let gameStarted = false;
-    const timer = setInterval(() => {
-        setCountdown(countDown => {
-            if(countDown === 1) {
-              clearInterval(timer);
-
-              // ensures the startGame is ran only one time
-              if (!gameStarted) {
-                gameStarted = true;
-                startGame();
-              }
-              setCountdown(null)
-              return 0;
-            }
-            return countDown - 1;
-        });
-    }, 1000);
-  };
-
-const startGame = () => {
-  setGameRunning(true);
-  setStopGame(false);
-  setScore(0);
-
-  let i = 0;
-
-  const intervalId = setInterval(() => {
-    const newIndex = generateRandomIndex(boxes);
-    const idx = generateRandomLetter();
-    setCurrentLetter(letters[idx]);
+      return 0;
+};
   
-    sounds[letters[idx]].play();
-  
-    setTotal((total) => total + 1);
-    setCurrentIndex(newIndex);
-    const updatedBoxes = [...boxes];
-    updatedBoxes.forEach((box, index) => {
-      if (currentIndex === index) {
-        updatedBoxes[index] = {
-          ...updatedBoxes[index],
-          bgColor: "white",
-        };
-      }
-      if (index === newIndex) {
-        if (randomColor) {
-          const newColor = generateRandomColor();
+  const startGame = () => {
+    setGameRunning(true);
+    setStopGame(false);
+    setScore(0);
+    let i = 0;
+    const intervalId = setInterval(() => {
+      const newIndex = generateRandomIndex(boxes);
+      const idx = generateRandomLetter();
+      setCurrentLetter(letters[idx]);
+    
+      sounds[letters[idx]].play();
+    
+      setTotal((total) => total + 1);
+      setCurrentIndex(newIndex);
+      const updatedBoxes = [...boxes];
+      updatedBoxes.forEach((box, index) => {
+        if (currentIndex === index) {
           updatedBoxes[index] = {
             ...updatedBoxes[index],
-            bgColor: newColor,
-          };
-        } else {
-          updatedBoxes[index] = {
-            ...updatedBoxes[index],
-            bgColor: 'red'
+            bgColor: "white",
           };
         }
-      }
-    });
-    setBoxes(updatedBoxes);
-
-    const handleGameOver = () => {
-      clearInterval(intervalIdRef.current);
-      clearTimeout(timeoutIdRef.current);
-      setCurrentIndex(null);
-      setGameRunning(false);
-      setGameOver(true);
-      setShowScore(false);
-      setTimeout(() => {
-        setShowScore(true);
-      }, 2000);
-    };
+        if (index === newIndex) {
+          if (randomColor) {
+            const newColor = generateRandomColor();
+            updatedBoxes[index] = {
+              ...updatedBoxes[index],
+              bgColor: newColor,
+            };
+          } else {
+            updatedBoxes[index] = {
+              ...updatedBoxes[index],
+              bgColor: 'red'
+            };
+          }
+        }
+      });
+      setBoxes(updatedBoxes);
     
+      const timeoutId = setTimeout(() => {
+        const resetBoxes = [...boxes];
+        resetBoxes[newIndex].bgColor = "white";
+        setBoxes(resetBoxes);
+      
+        if (i >= roundLength) {
+          handleGameOver();
+        }
+      
+        i++;
+      }, runTime + 1000);
+      
     
-    
-    
-  
-    const timeoutId = setTimeout(() => {
-      const resetBoxes = [...boxes];
-      resetBoxes[newIndex].bgColor = "white";
-      setBoxes(resetBoxes);
+      timeoutIdRef.current = timeoutId; // store timeout ID in ref
     
       if (i >= roundLength) {
-        handleGameOver();
+        clearInterval(intervalId);
+        clearTimeout(timeoutIdRef.current);
+        setCurrentIndex(null);
+        setGameRunning(false);
+        setGameOver(true);
       }
+    }, runTime);
     
-      i++;
-    }, runTime + 1000);
-    
-  
-    timeoutIdRef.current = timeoutId; // store timeout ID in ref
-  
-    if (i >= roundLength) {
-      clearInterval(intervalId);
-      clearTimeout(timeoutIdRef.current);
-      setCurrentIndex(null);
-      setGameRunning(false);
-      setGameOver(true);
-    }
-  }, runTime);
-  
 
-  intervalIdRef.current = intervalId; // store interval ID in ref
-};
-
+    intervalIdRef.current = intervalId; // store interval ID in ref
+  };
+  const handleGameOver = () => {
+    clearInterval(intervalIdRef.current);
+    clearTimeout(timeoutIdRef.current);
+    setCurrentIndex(null);
+    setGameRunning(false);
+    setGameOver(true);
+    setShowScore(false);
+    setTimeout(() => {
+      setShowScore(true);
+    }, 2000);
+  };
 
   const handleRunTimeChange = (event) => {
     setRunTime(parseInt(event.target.value, 10));
@@ -253,31 +228,12 @@ const startGame = () => {
     setRandomColor(newValue);
   };
   
-
   const handleRandomShapeChange = (event) => {
     setRandomShape(event.target.checked);
   };
 
-
-useEffect(() => {
-  if(total > nBack) {
-    setInternalCount(internalCount + 1)
-  }
-},[total,currentIndex,TT]);
-
-useEffect(() => {
-  if (lastIndexColored !== null) {
-    const timeoutId = setTimeout(() => {
-      setBoxes((prevBoxes) => {
-        const resetBoxes = [...prevBoxes];
-        resetBoxes[lastIndexColored].bgColor = "white";
-        setLastIndexColored(null); // reset the lastIndexColored state variable
-        return resetBoxes;
-      });
-    }, runTime - 500);
-    return () => clearTimeout(timeoutId);
-  }
-}, [lastIndexColored, runTime]);
+// change box Color with appropriate delay
+useChangeBoxColor(lastIndexColored, setBoxes, setLastIndexColored, runTime);
 
 
 const handleStopClick = () => {
@@ -295,9 +251,27 @@ const handleStopClick = () => {
   });
 };
 
-const [completedRounds, setCompletedRounds] = useState(
-  localStorage.getItem("completedRounds") || 0
-);
+const startCountDown = () => {
+  setCountdown(3)
+  let gameStarted = false;
+  const timer = setInterval(() => {
+      setCountdown(countDown => {
+          if(countDown === 1) {
+            clearInterval(timer);
+
+            // ensures the startGame is ran only one time
+            if (!gameStarted) {
+              gameStarted = true;
+              startGame();
+            }
+            setCountdown(null)
+            return 0;
+          }
+          return countDown - 1;
+      });
+  }, 1000);
+  
+};
 
 
 const handleNextRound = () => {
@@ -307,114 +281,76 @@ const handleNextRound = () => {
   setInCorrectLetter(0);
   setCurrentIndex(null);
   setShowScore(false);
-  setCompletedRounds((prevCount) => prevCount + 1);
-  startCountDown();
-  startGame();
+  setCompletedRounds((prevCount) => Number(prevCount) + 1);
 
-  setCompletedRounds((prevCompletedRounds) => prevCompletedRounds + 1);
-  localStorage.setItem("completedRounds", completedRounds + 1);
+
+  if (countdownRef.current === null) {
+    // Start the countdown only if it's not already running
+    startCountDown();
+  } else {
+    clearTimeout(countdownRef.current); // Clear the previous countdown timer
+    startGame(); // Start the next round immediately
+  }
 };
-
-
 
 const handleCloseScoreModal = () => {
   setShowScore(false);
   setGameOver(false);
+  setCountdown(null); // Clear the countdown timer
+  clearInterval(timer); // Clear the interval used for countdown
 };
-
-
-
 
 const handleNChange = (event) => {
   setNBack(parseInt(event.target.value));
 };
 const [keyPressCount, setKeyPressCount] = useState(0);
-const [keyIncorrect, setKeyIncorrect] = useState(0);
 
-function handleKeyPress(event, type) {
-  const L_LOCATION = 76;
-  const S_LOCATION = 83;
-  const C_LOCATION = 67;
+// 
+const { fired  } = useGetTally(
+  total,
+  nBack,
+  soundIndexes,
+  colorIndexes,
+  indexes,
+  internalCount,
+  setInCorrectLetter,
+  setIncorrectColor,
+  setInCorrectBox
+);
 
-  const keyCode = type === "sound" ? S_LOCATION : type === "location" ? L_LOCATION : C_LOCATION;
-
-  if (total > nBack) {
-    if (event.keyCode === S_LOCATION && soundIndexes[nBack - nBack + internalCount] === soundIndexes[soundIndexes.length - 1]) {
-      console.log("SOUND hit");
-      setKeyPressCount((k) => k + 1);
-    }
-
-    if (event.keyCode === S_LOCATION && soundIndexes[nBack - nBack + internalCount] !== soundIndexes[soundIndexes.length - 1]) {
-      console.log("SOUND miss");
-      setInCorrectLetter((k) => k + 1);
-      if (playIncorrectSound) {
-        incorrectAudio.inCorrect.play();
-      }
-    }
-
-    if (event.keyCode === L_LOCATION && indexes[nBack - nBack + internalCount] === indexes[indexes.length - 1]) {
-      console.log("LOCATION hit");
-      setCorrectBox((correctBox) => correctBox + 1);
-    }
-    if (event.keyCode === L_LOCATION && indexes[nBack - nBack + internalCount] !== indexes[indexes.length - 1]) {
-      console.log("LOCATION miss");
-      setInCorrectBox((incorrectBox) => incorrectBox + 1);
-      if (playIncorrectSound) {
-        incorrectAudio.inCorrect.play();
-      }
-    }
-
-    if (event.keyCode === C_LOCATION && colorIndexes[nBack - nBack + internalCount] === colorIndexes[colorIndexes.length - 1]) {
-      console.log("COLOR hit");
-      setCorrectColor((correctColor) => correctColor + 1);
-    }
-    if (event.keyCode === C_LOCATION && colorIndexes[nBack - nBack + internalCount] !== colorIndexes[colorIndexes.length - 1]) {
-      console.log("COLOR miss");
-      setIncorrectColor((incorrectColor) => incorrectColor + 1);
-      if (playIncorrectSound) {
-        incorrectAudio.inCorrect.play();
-      }
-    }
-  }
-}
-
-
-
-
-
+const handleKeyPress = useKeyPress(playIncorrectSound, soundIndexes, indexes, colorIndexes, total, nBack, internalCount, setKeyPressCount, setInCorrectLetter, setCorrectBox, setInCorrectBox, setCorrectColor, setIncorrectColor);
 
 function handleSoundButtonTouch() {
   handleKeyPress({ keyCode: 83 }, "sound");
 }
-
 function handleLocationButtonTouch() {
   handleKeyPress({ keyCode: 76 }, "location");
 }
-
-
-
-
-
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyPress);
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [gameRunning, currentIndex, stopGame, indexes, score, nBack,total,keyPressCount]);
-
-  
-
-  function calculatePercentage(numCorrect, total) {
-    return total === 0 ? 0 : Math.round((numCorrect / total) * 100);
-  }
-  
+    
 const [instructionsModalOpen, setInstructionsModalOpen] = useState(false);
 
 const toggleInstructionsModal = () => {
   setInstructionsModalOpen(!instructionsModalOpen);
 };
 
+const rowIndices = [
+  { start: 0, end: 3 },
+  { start: 3, end: 6 },
+  { start: 6, end: 9 },
+];
+
+useEffect(() => {
+  if(total > nBack) {
+    setInternalCount(internalCount + 1)
+  }
+},[total,currentIndex,TT]);
+
+useEffect(() => {
+  document.addEventListener("keydown", handleKeyPress);
+  return () => {
+    document.removeEventListener("keydown", handleKeyPress);
+  };
+}, [handleKeyPress]);
   
   return (
     <>
@@ -438,35 +374,14 @@ const toggleInstructionsModal = () => {
         </div>
 
         <div className="flex">
-  {/* Show instruction for audio match */}
-  <div className="flex items-center justify-center mb-4">
-    <div className="bg-gray-500 full p-4 m-2">
-      <div className="text-white text-center font-bold">
-        Click 'S' to Match Sound
-      </div>
-    </div>
-  </div>
-
-  {/* Show instruction for location match */}
-  <div className="flex items-center justify-center mb-4">
-    <div className="bg-gray-500 full p-4">
-      <div className="text-white text-center font-bold">
-        Click 'L' to Match Location
-      </div>
-    </div>
-  </div>
-
-  {/* Show instruction for color match if color is enabled */}
-  {randomColor && (
-    <div className="flex items-center justify-center mb-4">
-      <div className="bg-gray-500 full m-2 p-4">
-        <div className="text-white text-center font-bold">
-          Click 'C' to Match Color
+            {/* Show instruction for audio match */}
+          <ButtonInstructions letter={'S'}/>
+          <ButtonInstructions letter={'L'}/>
+            {/* Show instruction for color match if color is enabled */}
+            {randomColor && (
+            <ButtonInstructions letter={'C'}/>
+            )}
         </div>
-      </div>
-    </div>
-  )}
-</div>
 
 
 
@@ -484,30 +399,18 @@ const toggleInstructionsModal = () => {
           Color mode: {randomColor ? "Enabled" : "Disabled"}
         </div>
         {/* Display game board */}
+        {completedRounds && <p>'look here',{completedRounds}</p>}
+        {rowIndices.map((row, index) => (
         <BoxRow
+          key={index}
           boxes={boxes}
-          start={0}
-          end={3}
+          start={row.start}
+          end={row.end}
           currentIndex={currentIndex}
           gameRunning={gameRunning}
           stopGame={stopGame}
         />
-        <BoxRow
-          boxes={boxes}
-          start={3}
-          end={6}
-          currentIndex={currentIndex}
-          gameRunning={gameRunning}
-          stopGame={stopGame}
-        />
-        <BoxRow
-          boxes={boxes}
-          start={6}
-          end={9}
-          currentIndex={currentIndex}
-          gameRunning={gameRunning}
-          stopGame={stopGame}
-        />
+      ))}
         <StartStop
           startCountDown={startCountDown}
           handleStopClick={handleStopClick}
@@ -516,9 +419,6 @@ const toggleInstructionsModal = () => {
           handleLocationButtonTouch={handleLocationButtonTouch}
           handleSoundButtonTouch={handleSoundButtonTouch}
         />
-
-          
-
         <Modal isOpen={optionsModalOpen} closeModal={toggleOptionsModal}>
           <OptionsPanel
             nBack={nBack}
@@ -545,9 +445,12 @@ const toggleInstructionsModal = () => {
           onClose={handleCloseScoreModal}
           onNextRound={handleNextRound}
           completedRounds={completedRounds}
+          roundCount={completedRounds}
         />
         )}
       </div>
     </>
   );
 }
+
+

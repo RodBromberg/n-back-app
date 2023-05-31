@@ -37,7 +37,7 @@ function HeroHome() {
           {/* Section header */}
           <div className="max-w-3xl mx-auto text-center pb-12 md:pb-16">
             <h1 className="h1 mb-4" data-aos="fade-up">
-              Dual N-Back Training Online
+              N-Back Training Online
             </h1>
             <p className="text-xl text-gray-400 mb-8" data-aos="fade-up" data-aos-delay="200">
             Improve your working memory and cognitive abilities with the Dual-N-Back game. Play now on our website and challenge yourself to reach new levels of mental agility

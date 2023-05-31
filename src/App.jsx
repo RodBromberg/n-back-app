@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Routes,
   Route,
@@ -15,6 +15,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import ResetPassword from './pages/ResetPassword';
 import { GameBoard } from './components/GameBoard/GameBoard';
+
 
 function App() {
 
@@ -35,8 +36,27 @@ function App() {
     document.querySelector('html').style.scrollBehavior = ''
   }, [location.pathname]); // triggered on route change
 
+  // function Test() {
+
+  //   const [arr,setArr] = useState([])
+
+  //   console.log({ arr })
+
+  //   const fetchData = async () => {
+  //      fetch('http://localhost:8000/api/users')
+  //      .then(res=>res.json())
+  //      .then(res=>setArr(res))
+  //   }
+
+    
+  //   useEffect(()=>{
+  //     fetchData()
+  //   },[])
+  // }
+
   return (
     <>
+    {/* <SignupForm /> */}
       <Routes>
         <Route exact path="/" element={<Home />} />
         <Route path="/signin" element={<SignIn />} />
@@ -44,6 +64,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/gameboard" element={<GameBoard />} />
       </Routes>
+      {/* <Test /> */}
     </>
   );
 }
